@@ -65,13 +65,13 @@ for m in list(matches['match_code']):
 
     fig, ax = plt.subplots(1,2)
 
-    fig.set_facecolor('navajowhite')
-    fig.suptitle(f'0\': {h_score[0]} ({round(h_xG[0],2)}) - ({round(a_xG[0],2)}) {a_score[0]}')
-    
-    ax[0].barh(range(len(h_prob)), h_prob, color=h_colours[0], edgecolor=h_colours[1])
-    ax[1].barh(range(len(a_prob)), a_prob, color=a_colours[0], edgecolor=a_colours[1])
-    ax[0].set_facecolor('papayawhip')
-    ax[0].set_xlim(1,0)
+    fig.subplots_adjust(wspace=0)
+
+    title = fig.suptitle(f'0\': {h_score[0]} ({round(h_xG[0],2)}) - ({round(a_xG[0],2)}) {a_score[0]}')
+    h_bar = ax[0].barh(range(len(h_prob)), h_prob, color=h_colours[0], edgecolor=h_colours[1])
+    a_bar = ax[1].barh(range(len(a_prob)), a_prob, color=a_colours[0], edgecolor=a_colours[1])
+
+    ax[0].set_xlim(1.05,0)
     ax[0].set_yticks(range(5), labels=["0","1","2","3","4+"])
     ax[0].set_ylabel('# Goals')
     ax[0].set_xticks([1,0.8,0.6,0.4,0.2,0], labels=["100", "80", "60", "40", "20", "0"])
@@ -82,10 +82,9 @@ for m in list(matches['match_code']):
     ax[0].spines['top'].set_visible(False)
     ax[0].spines['bottom'].set_visible(False)
     ax[0].set_axisbelow(True)
-    ax[0].grid(True, color='wheat', axis='x', zorder=0)
+    ax[0].grid(True, color='0.85', axis='x', zorder=0)
 
-    ax[1].set_facecolor('papayawhip')
-    ax[1].set_xlim(0,1)
+    ax[1].set_xlim(0,1.05)
     ax[1].set_yticks(range(5), labels=["0","1","2","3","4+"])
     ax[1].set_ylabel('# Goals')
     ax[1].set_xticks([0,0.2,0.4,0.6,0.8,1], labels=["0","20","40","60","80","100"])
@@ -98,16 +97,21 @@ for m in list(matches['match_code']):
     ax[1].spines['top'].set_visible(False)
     ax[1].spines['bottom'].set_visible(False)
     ax[1].set_axisbelow(True)
-    ax[1].grid(True, color='wheat', axis='x', zorder=0)
+    ax[1].grid(True, color='0.85', axis='x', zorder=0)
+    
+    artists = [title]
+    artists.extend(h_bar.patches)
+    artists.extend(a_bar.patches)
 
     def update(f):
         h_prob = [list(data['h_0'])[f], list(data['h_1'])[f], list(data['h_2'])[f], list(data['h_3'])[f], list(data['h_4'])[f]]
         a_prob = [list(data['a_0'])[f], list(data['a_1'])[f], list(data['a_2'])[f], list(data['a_3'])[f], list(data['a_4'])[f]]
-        for r in range(len(ax[0].patches)):
-            ax[0].patches[r].set_width(h_prob[r])
-            ax[1].patches[r].set_width(a_prob[r])
-        fig.suptitle(f'{list(data['minute'])[f]}\': {list(data['h_score'])[f]} ({round(list(data['h_xG'])[f],2)}) - ({round(list(data['a_xG'])[f],2)}) {list(data['a_score'])[f]}')
+        title.set_text(f'{list(data['minute'])[f]}\': {list(data['h_score'])[f]} ({round(list(data['h_xG'])[f],2)}) - ({round(list(data['a_xG'])[f],2)}) {list(data['a_score'])[f]}')
+        for r in range(len(h_bar.patches)):
+            h_bar.patches[r].set_width(h_prob[r])
+            a_bar.patches[r].set_width(a_prob[r])
+        return artists
     
-    ani = FuncAnimation(fig, update, frames=range(data.shape[0]), interval=25, repeat=False)
+    ani = FuncAnimation(fig, update, frames=range(data.shape[0]), interval=25, repeat=False, blit=True)
     ani.save(f'./output/{m}.gif','pillow',fps=30)
     plt.close(fig)
