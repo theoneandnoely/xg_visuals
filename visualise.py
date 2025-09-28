@@ -13,6 +13,8 @@ if folder_path not in path_env:
 from cairosvg import svg2png
 from io import BytesIO
 
+start_start = time.monotonic()
+
 team_colours = {
     'Arsenal':['red','white'],
     'Aston Villa':['lightskyblue','maroon'],
@@ -58,7 +60,11 @@ matches = pd.read_csv('./data/matches.csv')
 end = time.monotonic()
 print(f'Matches DataFrame loaded in {round(end - start,4)} seconds.')
 
+counter = 0
 for m in matches['match_code']:
+    counter += 1
+    print(f'-----------------\nMatch {counter} of {matches.shape[0]}: {m}')
+
     # Get per frame data
     start = time.monotonic()
     data = pd.read_csv(f'./data/{m}.csv')
@@ -75,6 +81,7 @@ for m in matches['match_code']:
     else:
         a_colours = team_colours[a_name]
     bg_colour = 'seashell'
+    text_colour = 'black'
 
     # Get team crests and convert to png BytesIO buffers
     h_crest_bytes = BytesIO(svg2png(url=f'./icons/{h_name}.svg'))
@@ -91,8 +98,8 @@ for m in matches['match_code']:
     a_xG = data['a_xG'][0]
     h_prob = [data['h_0'][0], data['h_1'][0], data['h_2'][0], data['h_3'][0], data['h_4'][0]]
     a_prob = [data['a_0'][0], data['a_1'][0], data['a_2'][0], data['a_3'][0], data['a_4'][0]]
-    h_at_least = [0,0,0,0,0]
-    a_at_least = [0,0,0,0,0]
+    h_at_least = [h_prob[0],0,0,0,0]
+    a_at_least = [a_prob[0],0,0,0,0]
 
     # Set up subplots to share central axis
     fig, ax = plt.subplots(1,2)
@@ -104,12 +111,17 @@ for m in matches['match_code']:
     h_al_bar = ax[0].barh(range(len(h_at_least)), h_at_least, color=h_colours[1], edgecolor=h_colours[0], hatch='//', zorder=2)
     a_al_bar = ax[1].barh(range(len(a_at_least)), a_at_least, color=a_colours[1], edgecolor=a_colours[0], hatch='//', zorder=2)
 
+    # Add outline for white bars
+    h_outline = ax[0].barh(range(5), h_at_least, fill=False, edgecolor=h_colours[1], zorder=3)
+    a_outline = ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colours[1], zorder=3)
+
     # Set background colour as well as shared formatting for subplots
     fig.set_facecolor(bg_colour)
     for a in ax:
         a.set_facecolor(bg_colour)
-        a.set_yticks(range(5), labels=["0","1","2","3","4+"])
-        a.set_ylabel('Goals Scored')
+        a.set_yticks(range(5), labels=["0","1","2","3","4+"], color=text_colour)
+        a.tick_params(axis='y',length=0)
+        a.set_ylabel('Goals Scored', color=text_colour)
         a.invert_yaxis()
         a.spines['top'].set_visible(False)
         a.spines['bottom'].set_visible(False)
@@ -117,14 +129,14 @@ for m in matches['match_code']:
 
     # Set inverted formatting for subplots
     ax[0].set_xlim(1.05,0)
-    ax[0].set_xticks([1,0.8,0.6,0.4,0.2,0], labels=["100", "80", "60", "40", "20", "0"])
-    ax[0].set_xlabel('Probability (%)')
+    ax[0].set_xticks([1,0.8,0.6,0.4,0.2,0], labels=["100", "80", "60", "40", "20", "0"], color=text_colour)
+    ax[0].set_xlabel('Probability (%)', color=text_colour)
     ax[0].spines['left'].set_visible(False)
     ax[0].spines['right'].set(zorder=4)
 
     ax[1].set_xlim(0,1.05)
-    ax[1].set_xticks([0,0.2,0.4,0.6,0.8,1], labels=["0","20","40","60","80","100"])
-    ax[1].set_xlabel('Probability (%)')
+    ax[1].set_xticks([0,0.2,0.4,0.6,0.8,1], labels=["0","20","40","60","80","100"], color=text_colour)
+    ax[1].set_xlabel('Probability (%)', color=text_colour)
     ax[1].yaxis.set_label_position('right')
     ax[1].yaxis.set_ticks_position('right')
     ax[1].spines['right'].set_visible(False)
@@ -136,13 +148,25 @@ for m in matches['match_code']:
     ax[1].legend(labels=labels, handles=handles, loc='lower right', fancybox=False, framealpha=0.5)
 
     # Add Header Text
-    minute_label = ax[0].text(0, -1, '0\'', size='x-large', ha='center', weight='bold')
-    ax[0].text(0.75, -1.25, h_name, size='large', ha='left', weight='bold')
-    h_score_label = ax[0].text(0.75, -1, h_score, size='medium', ha='left', weight='bold')
-    h_xG_label = ax[0].text(0.75, -0.75, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal')
-    ax[1].text(0.75, -1.25, a_name, size='large', ha='right', weight='bold')
-    a_score_label = ax[1].text(0.75, -1, a_score, size='medium', ha='right', weight='bold')
-    a_xG_label = ax[1].text(0.75, -0.75, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal')
+    minute_label = ax[0].text(0, -1, '0\'', size='x-large', ha='center', weight='bold', color=text_colour)
+    match h_name:
+        case 'Wolverhampton Wanderers':
+            ax[0].text(0.75, -1.25, 'Wolves', size='large', ha='left', weight='bold', color=text_colour)
+        case 'Tottenham':
+            ax[0].text(0.75, -1.25, 'Spurs', size='large', ha='left', weight='bold', color=text_colour)
+        case _:
+            ax[0].text(0.75, -1.25, h_name, size='large', ha='left', weight='bold', color=text_colour)
+    h_score_label = ax[0].text(0.75, -1, h_score, size='medium', ha='left', weight='bold', color=text_colour)
+    h_xG_label = ax[0].text(0.75, -0.75, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal', color=text_colour)
+    match a_name:
+        case 'Wolverhampton Wanderers':
+            ax[1].text(0.75, -1.25, 'Wolves', size='large', ha='right', weight='bold', color=text_colour)
+        case 'Tottenham':
+            ax[1].text(0.75, -1.25, 'Spurs', size='large', ha='right', weight='bold', color=text_colour)
+        case _:
+            ax[1].text(0.75, -1.25, a_name, size='large', ha='right', weight='bold', color=text_colour)
+    a_score_label = ax[1].text(0.75, -1, a_score, size='medium', ha='right', weight='bold', color=text_colour)
+    a_xG_label = ax[1].text(0.75, -0.75, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal', color=text_colour)
 
     # Add Team Crests to Header
     if h_width_to_height >= 1:
@@ -164,6 +188,8 @@ for m in matches['match_code']:
     artists.extend(a_bar.patches)
     artists.extend(h_al_bar.patches)
     artists.extend(a_al_bar.patches)
+    artists.extend(h_outline.patches)
+    artists.extend(a_outline.patches)
 
     end = time.monotonic()
     print(f'Initial set up for {m} completed in {round(end - start,4)} seconds.')
@@ -173,6 +199,8 @@ for m in matches['match_code']:
         # Get updated values
         h_prob = [data['h_0'][f], data['h_1'][f], data['h_2'][f], data['h_3'][f], data['h_4'][f]]
         a_prob = [data['a_0'][f], data['a_1'][f], data['a_2'][f], data['a_3'][f], data['a_4'][f]]
+        h_at_least[0] = h_prob[0]
+        a_at_least[0] = a_prob[0]
         for i in range(1,len(h_at_least)):
             h_at_least[i] = sum(h_prob[i:])
             a_at_least[i] = sum(a_prob[i:])
@@ -190,6 +218,8 @@ for m in matches['match_code']:
             a_bar.patches[r].set_width(a_prob[r])
             h_al_bar.patches[r].set_width(h_at_least[r])
             a_al_bar.patches[r].set_width(a_at_least[r])
+            h_outline.patches[r].set_width(h_at_least[r])
+            a_outline.patches[r].set_width(a_at_least[r])
         
         return artists
     
@@ -202,7 +232,7 @@ for m in matches['match_code']:
     print(f'Animation for {m} created in {round(end - start,4)} seconds.')
     
     start = time.monotonic()
-    ani.save(f'./output/animated/{m}.gif','pillow',fps=30, savefig_kwargs={'bbox_inches':'tight'}, progress_callback=progress)
+    ani.save(f'./output/animated/{m}.gif','pillow',fps=30) #, savefig_kwargs={'bbox_inches':'tight'}) #, progress_callback=progress)
     end = time.monotonic()
     print(f'{m}.gif saved in {round(end - start,4)} seconds.')
 
@@ -210,3 +240,5 @@ for m in matches['match_code']:
     plt.close(fig)
     end = time.monotonic()
     print(f'Figure closed in {round(end - start,4)} seconds.')
+    elapsed = time.monotonic()
+    print(f'{int(((elapsed - start_start)/60) - (((elapsed - start_start)%60)/60))} minute(s) and {round((elapsed - start_start)%60,2)} second(s)')

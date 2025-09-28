@@ -77,7 +77,8 @@ for m in matches['match_id']:
         a_colour = [team_colours[a_team][1], team_colours[a_team][0]]
     else:
         a_colour = team_colours[a_team]
-    bg_colour = 'seashell'
+    bg_colour = "seashell"
+    text_colour = "black"
 
     # Filter shot data to just the shots for this match per team
     shots = shots_all[shots_all['match_id']==m]
@@ -96,8 +97,8 @@ for m in matches['match_id']:
         a_prob.append(prob(a_shots['xG'],i))
     h_prob.append(1-sum(h_prob))
     a_prob.append(1-sum(a_prob))
-    h_at_least = [0]
-    a_at_least = [0]
+    h_at_least = [h_prob[0]]
+    a_at_least = [a_prob[0]]
     for i in range(1,5):
         h_at_least.append(sum(h_prob[i:]))
         a_at_least.append(sum(a_prob[i:]))
@@ -112,12 +113,19 @@ for m in matches['match_id']:
     ax[0].barh(range(5), h_at_least, color=h_colour[1], hatch='//', edgecolor=h_colour[0], zorder=2)
     ax[1].barh(range(5), a_at_least, color=a_colour[1], hatch='//', edgecolor=a_colour[0], zorder=2)
 
+    # Add outline bar if block colour is white
+    if h_colour[0] == 'white':
+        ax[0].barh(range(5), h_at_least, fill=False, edgecolor=h_colour[1], zorder=3)
+    if a_colour[0] == 'white':
+        ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colour[1], zorder=3)
+
     # Set background colour as well as shared formatting for subplots
     fig.set_facecolor(bg_colour)
     for a in ax:
         a.set_facecolor(bg_colour)
-        a.set_yticks(range(5), labels=["0","1","2","3","4+"])
-        a.set_ylabel('Goals Scored')
+        a.set_yticks(range(5), labels=["0","1","2","3","4+"], color=text_colour)
+        a.tick_params(axis='y',length=0)
+        a.set_ylabel('Goals Scored', color=text_colour)
         a.invert_yaxis()
         a.spines['top'].set_visible(False)
         a.spines['bottom'].set_visible(False)
@@ -125,14 +133,14 @@ for m in matches['match_id']:
 
     # Set inverted formatting for subplots
     ax[0].set_xlim(1.05,0)
-    ax[0].set_xticks([1,.9,.8,.7,.6,.5,.4,.3,.2,.1,0], labels=range(100,-10,-10))
-    ax[0].set_xlabel('Probability (%)')
+    ax[0].set_xticks([1,.9,.8,.7,.6,.5,.4,.3,.2,.1,0], labels=range(100,-10,-10), color=text_colour)
+    ax[0].set_xlabel('Probability (%)', color=text_colour)
     ax[0].spines['left'].set_visible(False)
     ax[0].spines['right'].set(zorder=4)
 
     ax[1].set_xlim(0,1.05)
-    ax[1].set_xticks([0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1], labels=range(0,105,10))
-    ax[1].set_xlabel('Probability (%)')
+    ax[1].set_xticks([0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1], labels=range(0,105,10), color=text_colour)
+    ax[1].set_xlabel('Probability (%)', color=text_colour)
     ax[1].yaxis.set_label_position('right')
     ax[1].yaxis.set_ticks_position('right')
     ax[1].spines['right'].set_visible(False)
@@ -146,22 +154,22 @@ for m in matches['match_id']:
     # Add Header Text
     match h_team:
         case 'Wolverhampton Wanderers':
-            ax[0].text(0.75, -1.25, 'Wolves', size='large', ha='left', weight='bold')
+            ax[0].text(0.75, -1.25, 'Wolves', size='large', ha='left', weight='bold', color=text_colour)
         case 'Tottenham':
-            ax[0].text(0.75, -1.25, 'Spurs', size='large', ha='left', weight='bold')
+            ax[0].text(0.75, -1.25, 'Spurs', size='large', ha='left', weight='bold', color=text_colour)
         case _:
-            ax[0].text(0.75, -1.25, h_team, size='large', ha='left', weight='bold')
-    ax[0].text(0.75, -1, h_score, size='medium', ha='left', weight='bold')
-    ax[0].text(0.75, -0.75, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal')
+            ax[0].text(0.75, -1.25, h_team, size='large', ha='left', weight='bold', color=text_colour)
+    ax[0].text(0.75, -1, h_score, size='medium', ha='left', weight='bold', color=text_colour)
+    ax[0].text(0.75, -0.75, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal', color=text_colour)
     match a_team:
         case 'Wolverhampton Wanderers':
-            ax[1].text(0.75, -1.25, 'Wolves', size='large', ha='right', weight='bold')
+            ax[1].text(0.75, -1.25, 'Wolves', size='large', ha='right', weight='bold', color=text_colour)
         case 'Tottenham':
-            ax[1].text(0.75, -1.25, 'Spurs', size='large', ha='right', weight='bold')
+            ax[1].text(0.75, -1.25, 'Spurs', size='large', ha='right', weight='bold', color=text_colour)
         case _:
-            ax[1].text(0.75, -1.25, a_team, size='large', ha='right', weight='bold')
-    ax[1].text(0.75, -1, a_score, size='medium', ha='right', weight='bold')
-    ax[1].text(0.75, -0.75, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal')
+            ax[1].text(0.75, -1.25, a_team, size='large', ha='right', weight='bold', color=text_colour)
+    ax[1].text(0.75, -1, a_score, size='medium', ha='right', weight='bold', color=text_colour)
+    ax[1].text(0.75, -0.75, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal', color=text_colour)
 
     # Add Team Crests to Header
     print(f'{h_team}: {h_width_to_height}')
