@@ -53,21 +53,56 @@ for id in matches['match_id']:
         
         shots_min = shots_game[shots_game['minute']==m].reset_index()
         if shots_min.shape[0] > 0:
-            for i in range(shots_min.shape[0]):
-                if shots_min['h_a'][i] == 'h':
-                    h_shots.append(shots_min['xG'][i])
-                    h_xG += shots_min['xG'][i]
-                    if shots_min['result'][i] == 'Goal':
-                        h_score += 1
-                    elif shots_min['result'][i] == 'OwnGoal':
-                        a_score += 1
+            # Append first shot to the current attack
+            attack = [shots_min['xG'][0]]
+            attack_result = [shots_min['result'][0]]
+            attack_h_a = [shots_min['h_a'][0]]
+
+            for i in range(1,shots_min.shape[0]):
+                if shots_min['last_action'][i] == 'Rebound':
+                    # Append any rebounded shots to the current attack
+                    attack.append(shots_min['xG'][i])
+                    attack_result.append(shots_min['result'][i])
+                    attack_h_a.append(shots_min['h_a'][i])
                 else:
-                    a_shots.append(shots_min['xG'][i])
-                    a_xG += shots_min['xG'][i]
-                    if shots_min['result'][i] == 'Goal':
-                        a_score += 1   
-                    elif shots_min['result'][i] == 'OwnGoal':
-                        h_score += 1 
+                    # Otherwise get probability & result from the current attack and append it to h_shots/a_shots, and update the xG and score
+                    attack_xG = 1 - prob(attack,0)
+                    if attack_h_a[-1] == 'h':
+                        h_shots.append(attack_xG)
+                        h_xG += attack_xG
+                        if attack_result[-1] == 'Goal':
+                            h_score += 1
+                        elif attack_result[-1] == 'OwnGoal':
+                            a_score += 1
+                    else:
+                        a_shots.append(attack_xG)
+                        a_xG += attack_xG
+                        if attack_result[-1] == 'Goal':
+                            a_score += 1   
+                        elif attack_result[-1] == 'OwnGoal':
+                            h_score += 1
+                    # Reset the current attack to include only the most recent shot
+                    attack = [shots_min['xG'][i]]
+                    attack_result = [shots_min['result'][i]]
+                    attack_h_a = [shots_min['h_a'][i]]
+            
+            # Deal with the contents of the final current attack of the current minute
+            attack_xG = 1 - prob(attack, 0)
+            if attack_h_a[-1] == 'h':
+                h_shots.append(attack_xG)
+                h_xG += attack_xG
+                if attack_result[-1] == 'Goal':
+                    h_score += 1
+                elif attack_result[-1] == 'OwnGoal':
+                    a_score += 1
+            else:
+                a_shots.append(attack_xG)
+                a_xG += attack_xG
+                if attack_result[-1] == 'Goal':
+                    a_score += 1   
+                elif attack_result[-1] == 'OwnGoal':
+                    h_score += 1
+            
             new_h_prob = [prob(h_shots,0), prob(h_shots,1), prob(h_shots,2), prob(h_shots,3)]
             new_h_prob.append(1 - (new_h_prob[0] + new_h_prob[1] + new_h_prob[2] + new_h_prob[3]))
             new_a_prob = [prob(a_shots,0),prob(a_shots,1),prob(a_shots,2),prob(a_shots,3)]

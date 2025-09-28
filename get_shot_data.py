@@ -20,7 +20,8 @@ shot_data = {
     'x':[],
     'y':[],
     'player':[],
-    'shot_type':[]
+    'shot_type':[],
+    'last_action':[]
 }
 
 u = UnderstatClient()
@@ -58,6 +59,7 @@ for m in matches:
             shot_data['y'].append(float(s['Y']))
             shot_data['player'].append(s['player'])
             shot_data['shot_type'].append(s['shotType'])
+            shot_data['last_action'].append(s['lastAction'])
         for s in a_shots:
             shot_data['match_id'].append(m['id'])
             shot_data['minute'].append(int(s['minute']))
@@ -68,6 +70,7 @@ for m in matches:
             shot_data['y'].append(float(s['Y']))
             shot_data['player'].append(s['player'])
             shot_data['shot_type'].append(s['shotType'])
+            shot_data['last_action'].append(s['lastAction'])
 
 match_df = pd.DataFrame(match_data)
 shots_df = pd.DataFrame(shot_data)

@@ -112,8 +112,14 @@ for m in matches['match_code']:
     a_al_bar = ax[1].barh(range(len(a_at_least)), a_at_least, color=a_colours[1], edgecolor=a_colours[0], hatch='//', zorder=2)
 
     # Add outline for white bars
-    h_outline = ax[0].barh(range(5), h_at_least, fill=False, edgecolor=h_colours[1], zorder=3)
-    a_outline = ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colours[1], zorder=3)
+    if h_colours[0] == 'white':
+        h_outline = ax[0].barh(range(5), h_at_least, fill=False, edgecolor=h_colours[1], zorder=3)
+    else:
+        h_outline = ax[0].barh(range(5), h_at_least, fill=False, edgecolor=h_colours[0], zorder=3)
+    if a_colours[0] == 'white':
+        a_outline = ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colours[1], zorder=3)
+    else:
+        a_outline = ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colours[0], zorder=3)
 
     # Set background colour as well as shared formatting for subplots
     fig.set_facecolor(bg_colour)
@@ -237,8 +243,14 @@ for m in matches['match_code']:
     print(f'{m}.gif saved in {round(end - start,4)} seconds.')
 
     start = time.monotonic()
+    minute_label.set_text('')
+    fig.savefig(f'./output/static/{m}.png', bbox_inches='tight')
+    end = time.monotonic()
+    print(f'Saved static graph as png in {round(end - start,4)} seconds.')
+
+    start = time.monotonic()
     plt.close(fig)
     end = time.monotonic()
     print(f'Figure closed in {round(end - start,4)} seconds.')
     elapsed = time.monotonic()
-    print(f'{int(((elapsed - start_start)/60) - (((elapsed - start_start)%60)/60))} minute(s) and {round((elapsed - start_start)%60,2)} second(s)')
+    print(f'{int(((elapsed - start_start)/60) - (((elapsed - start_start)%60)/60))} minute(s) and {round((elapsed - start_start)%60,2)} second(s) elapsed...')
