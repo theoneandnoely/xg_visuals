@@ -2,9 +2,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from util import prob
-# from PIL import Image
-# from cairosvg import svg2png
-# from io import BytesIO
+from PIL import Image
+
+import os
+folder_path = os.path.abspath('./venv/Lib/site-packages/cairo/bin/')
+path_env = os.environ['PATH']
+if folder_path not in path_env:
+    os.environ['PATH'] = folder_path + os.pathsep + path_env
+
+from cairosvg import svg2png
+from io import BytesIO
 
 # import shot and match data
 matches = pd.read_csv('./data/matches.csv')
@@ -55,6 +62,14 @@ for m in matches['match_id']:
     # Get Team names from match record
     h_team = matches[matches['match_id']==m]['h_team'].item()
     a_team = matches[matches['match_id']==m]['a_team'].item()
+
+    # Get team crests and convert to png BytesIO buffers
+    h_crest_bytes = BytesIO(svg2png(url=f'./icons/{h_team}.svg'))
+    a_crest_bytes = BytesIO(svg2png(url=f'./icons/{a_team}.svg'))
+    h_crest = Image.open(h_crest_bytes)
+    h_width_to_height = h_crest.size[0]/h_crest.size[1]
+    a_crest = Image.open(a_crest_bytes)
+    a_width_to_height = a_crest.size[0]/a_crest.size[1]
     
     # Set colours
     h_colour = team_colours[h_team]
@@ -129,12 +144,39 @@ for m in matches['match_id']:
     ax[1].legend(labels=labels, handles=handles, loc='lower right', fancybox=False, framealpha=0.5)
 
     # Add Header Text
-    ax[0].text(0.5, -1.25, h_team, size='large', ha='center', weight='bold')
-    ax[0].text(0.5, -1, h_score, size='medium', ha='center', weight='bold')
-    ax[0].text(0.5, -0.75, f'({round(h_xG,2)})', size='medium', ha='center', weight='normal')
-    ax[1].text(0.5, -1.25, a_team, size='large', ha='center', weight='bold')
-    ax[1].text(0.5, -1, a_score, size='medium', ha='center', weight='bold')
-    ax[1].text(0.5, -0.75, f'({round(a_xG,2)})', size='medium', ha='center', weight='normal')
+    match h_team:
+        case 'Wolverhampton Wanderers':
+            ax[0].text(0.75, -1.25, 'Wolves', size='large', ha='left', weight='bold')
+        case 'Tottenham':
+            ax[0].text(0.75, -1.25, 'Spurs', size='large', ha='left', weight='bold')
+        case _:
+            ax[0].text(0.75, -1.25, h_team, size='large', ha='left', weight='bold')
+    ax[0].text(0.75, -1, h_score, size='medium', ha='left', weight='bold')
+    ax[0].text(0.75, -0.75, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal')
+    match a_team:
+        case 'Wolverhampton Wanderers':
+            ax[1].text(0.75, -1.25, 'Wolves', size='large', ha='right', weight='bold')
+        case 'Tottenham':
+            ax[1].text(0.75, -1.25, 'Spurs', size='large', ha='right', weight='bold')
+        case _:
+            ax[1].text(0.75, -1.25, a_team, size='large', ha='right', weight='bold')
+    ax[1].text(0.75, -1, a_score, size='medium', ha='right', weight='bold')
+    ax[1].text(0.75, -0.75, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal')
+
+    # Add Team Crests to Header
+    print(f'{h_team}: {h_width_to_height}')
+    if h_width_to_height >= 1:
+        ax_h_crest = plt.axes([0.1,0.9,0.1,0.1])
+    else:
+        offset = (1-h_width_to_height)/20
+        ax_h_crest = plt.axes([0.1+offset,0.9,0.1-offset,0.1])
+    ax_h_crest.imshow(h_crest)
+    ax_h_crest.set_zorder(5)
+    ax_h_crest.axis('off')
+    ax_a_crest = plt.axes([0.8,0.9,0.1,0.1])
+    ax_a_crest.imshow(a_crest)
+    ax_a_crest.set_zorder(5)
+    ax_a_crest.axis('off')
 
     fig.savefig(f'./output/static/{matches[matches['match_id']==m]['match_code'].item()}.png', bbox_inches='tight')
     plt.close(fig)

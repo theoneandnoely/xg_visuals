@@ -26,15 +26,15 @@ for id in matches['match_id']:
         'code':[]
     }
 
-    h_name = list(matches[matches['match_id'] == id]['h_team'])[0]
-    a_name = list(matches[matches['match_id'] == id]['a_team'])[0]
-    code = list(matches[matches['match_id'] == id]['match_code'])[0]
+    h_name = matches[matches['match_id'] == id]['h_team'].item()
+    a_name = matches[matches['match_id'] == id]['a_team'].item()
+    code = matches[matches['match_id'] == id]['match_code'].item()
 
     shots_game = shots_all[shots_all['match_id']==id]
     h_shots = []
     a_shots = []
 
-    for m in range(list(matches[matches['match_id']==id]['max_min'])[0] + 1):
+    for m in range(matches[matches['match_id']==id]['max_min'].item() + 1):
         # Get previous minute / initial values
         if m == 0:
             h_score = 0
@@ -51,19 +51,23 @@ for id in matches['match_id']:
             a_xG = data['a_xG'][-1]
             a_prob = [data['a_0'][-1], data['a_1'][-1], data['a_2'][-1], data['a_3'][-1], data['a_4'][-1]]
         
-        shots_min = shots_game[shots_game['minute']==m]
+        shots_min = shots_game[shots_game['minute']==m].reset_index()
         if shots_min.shape[0] > 0:
             for i in range(shots_min.shape[0]):
-                if list(shots_min['h_a'])[i] == 'h':
-                    h_shots.append(list(shots_min['xG'])[i])
-                    h_xG += list(shots_min['xG'])[i]
-                    if list(shots_min['result'])[i] == 'Goal':
+                if shots_min['h_a'][i] == 'h':
+                    h_shots.append(shots_min['xG'][i])
+                    h_xG += shots_min['xG'][i]
+                    if shots_min['result'][i] == 'Goal':
                         h_score += 1
+                    elif shots_min['result'][i] == 'OwnGoal':
+                        a_score += 1
                 else:
-                    a_shots.append(list(shots_min['xG'])[i])
-                    a_xG += list(shots_min['xG'])[i]
-                    if list(shots_min['result'])[i] == 'Goal':
-                        a_score += 1    
+                    a_shots.append(shots_min['xG'][i])
+                    a_xG += shots_min['xG'][i]
+                    if shots_min['result'][i] == 'Goal':
+                        a_score += 1   
+                    elif shots_min['result'][i] == 'OwnGoal':
+                        h_score += 1 
             new_h_prob = [prob(h_shots,0), prob(h_shots,1), prob(h_shots,2), prob(h_shots,3)]
             new_h_prob.append(1 - (new_h_prob[0] + new_h_prob[1] + new_h_prob[2] + new_h_prob[3]))
             new_a_prob = [prob(a_shots,0),prob(a_shots,1),prob(a_shots,2),prob(a_shots,3)]
