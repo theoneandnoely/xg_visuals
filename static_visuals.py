@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Ellipse, Arc
 from util import prob
 from PIL import Image
 
@@ -58,7 +58,7 @@ clash = {
     'orange':{'orange'}
 }
 
-for m in matches['match_id']:
+for m in matches['match_id'][50:51]:
     # Get Team names from match record
     h_team = matches[matches['match_id']==m]['h_team'].item()
     a_team = matches[matches['match_id']==m]['a_team'].item()
@@ -84,6 +84,8 @@ for m in matches['match_id']:
     shots = shots_all[shots_all['match_id']==m]
     h_shots = shots[shots['h_a']=='h'].reset_index()
     a_shots = shots[shots['h_a']=='a'].reset_index()
+    a_shots['x_adj'] = a_shots['x'].apply(lambda x: 1 - x)
+    a_shots['y_adj'] = a_shots['y'].apply(lambda y: 1 - y)
     
     # Get the score, naive xG, probability of scoring exactly n goals, and the probability of scoring at least n goals
     h_score = h_shots[h_shots['result']=='Goal'].shape[0] + a_shots[a_shots['result']=='OwnGoal'].shape[0]
@@ -104,8 +106,12 @@ for m in matches['match_id']:
         a_at_least.append(sum(a_prob[i:]))
 
     # Set up mpl figure so subplots share centre axis
-    fig, ax = plt.subplots(1,2)
-    fig.subplots_adjust(wspace=0)
+    fig = plt.figure(figsize=(10,10))
+    gs = fig.add_gridspec(10, 8, wspace=0)
+    shot_map_ax = fig.add_subplot(gs[1:4,2:6])
+    h_prob_ax = fig.add_subplot(gs[4:,0:4])
+    a_prob_ax = fig.add_subplot(gs[4:,4:])
+    ax = [h_prob_ax, a_prob_ax, shot_map_ax]
 
     # Add bars for exact and at least probabilities
     ax[0].barh(range(5), h_prob, color=h_colour[0], zorder=3)
@@ -119,9 +125,39 @@ for m in matches['match_id']:
     if a_colour[0] == 'white':
         ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colour[1], zorder=3)
 
+    # Add scatter plot for shot map
+    marker_size = 250
+    ax[2].scatter(h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['x'], h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['y'], s = [marker_size*n**2 for n in h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['xG']], color = h_colour[0], alpha=0.6, edgecolors=None, zorder=2)
+    ax[2].scatter(a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['x_adj'], a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['y_adj'], s = [marker_size*n**2 for n in a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['xG']], color = a_colour[0], alpha=0.6, edgecolors=None, zorder=2)
+    ax[2].scatter(h_shots[h_shots['result']=='Goal']['x'], h_shots[h_shots['result']=='Goal']['y'], s = [marker_size*n**2 for n in h_shots[h_shots['result']=='Goal']['xG']], color = h_colour[0], edgecolors=h_colour[1], marker='*', alpha=0.8, zorder=3)
+    ax[2].scatter(a_shots[a_shots['result']=='Goal']['x_adj'], a_shots[a_shots['result']=='Goal']['y_adj'], s = [marker_size*n**2 for n in a_shots[a_shots['result']=='Goal']['xG']], color = a_colour[0], edgecolors=a_colour[1], marker='*', alpha=0.8, zorder=3)
+    ax[2].scatter(h_shots[h_shots['result']=='OwnGoal']['x'], h_shots[h_shots['result']=='OwnGoal']['y'], s = [marker_size*0.5**2 for n in h_shots[h_shots['result']=='OwnGoal']['xG']], color = h_colour[1], edgecolors=h_colour[0], marker='*', alpha=0.8, zorder=3)
+    ax[2].scatter(a_shots[a_shots['result']=='OwnGoal']['x_adj'], a_shots[a_shots['result']=='OwnGoal']['y_adj'], s = [marker_size*0.5**2 for n in a_shots[a_shots['result']=='OwnGoal']['xG']], color = a_colour[1], edgecolors=a_colour[0], marker='*', alpha=0.8, zorder=3)
+    ax[2].set_xlim(0,1)
+    ax[2].set_ylim(0,1)
+    ax[2].tick_params(axis='both',length=0)
+    ax[2].get_xaxis().set_ticks([])
+    ax[2].get_yaxis().set_ticks([])
+    ax[2].set_facecolor('forestgreen')
+    ax[2].axvline(x=0.5,color='white', zorder=1)
+    centre_circle = ax[2].add_patch(Ellipse((0.5,0.5),0.11,0.175,color='white',fill=False))
+    centre_circle.set_zorder(1)
+    ax[2].hlines([0.19, 0.81],0,0.17,colors='white',zorder=1)
+    ax[2].axvline(0.17,0.19,0.81,color='white', zorder=1)
+    ax[2].hlines([0.4, 0.6],0,0.055,colors='white',zorder=1)
+    ax[2].axvline(0.055,0.4,0.6,color='white', zorder=1)
+    ax[2].hlines([0.19, 0.81],0.83,1,colors='white',zorder=1)
+    ax[2].axvline(0.83,0.19,0.81,color='white', zorder=1)
+    ax[2].hlines([0.4, 0.6],0.945,1,colors='white',zorder=1)
+    ax[2].axvline(0.945,0.4,0.6,color='white', zorder=1)
+    pen_arc_h = ax[2].add_patch(Arc((0.115,0.5),0.16,0.15,angle=270,theta1=49,theta2=131,color='white'))
+    pen_arc_a = ax[2].add_patch(Arc((0.885,0.5),0.16,0.15,angle=90,theta1=49,theta2=131,color='white'))
+    pen_arc_h.set_zorder(1)
+    pen_arc_a.set_zorder(1)
+
     # Set background colour as well as shared formatting for subplots
     fig.set_facecolor(bg_colour)
-    for a in ax:
+    for a in ax[:-1]:
         a.set_facecolor(bg_colour)
         a.set_yticks(range(5), labels=["0","1","2","3","4+"], color=text_colour)
         a.tick_params(axis='y',length=0)
@@ -154,38 +190,41 @@ for m in matches['match_id']:
     # Add Header Text
     match h_team:
         case 'Wolverhampton Wanderers':
-            ax[0].text(0.75, -1.25, 'Wolves', size='large', ha='left', weight='bold', color=text_colour)
+            ax[2].text(-0.45, 0.2, 'Wolves', size='large', ha='left', weight='bold', color=text_colour)
         case 'Tottenham':
-            ax[0].text(0.75, -1.25, 'Spurs', size='large', ha='left', weight='bold', color=text_colour)
+            ax[2].text(-0.45, 0.2, 'Spurs', size='large', ha='left', weight='bold', color=text_colour)
         case _:
-            ax[0].text(0.75, -1.25, h_team, size='large', ha='left', weight='bold', color=text_colour)
-    ax[0].text(0.75, -1, h_score, size='medium', ha='left', weight='bold', color=text_colour)
-    ax[0].text(0.75, -0.75, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal', color=text_colour)
+            ax[2].text(-0.45, 0.2, h_team, size='large', ha='left', weight='bold', color=text_colour)
+    ax[2].text(-0.45, 0.1, h_score, size='x-large', ha='left', weight='bold', color=text_colour)
+    ax[2].text(-0.45, 0, f'({round(h_xG,2)})', size='medium', ha='left', weight='normal', color=text_colour)
     match a_team:
         case 'Wolverhampton Wanderers':
-            ax[1].text(0.75, -1.25, 'Wolves', size='large', ha='right', weight='bold', color=text_colour)
+            ax[2].text(1.45, 0.2, 'Wolves', size='large', ha='right', weight='bold', color=text_colour)
         case 'Tottenham':
-            ax[1].text(0.75, -1.25, 'Spurs', size='large', ha='right', weight='bold', color=text_colour)
+            ax[2].text(1.45, 0.2, 'Spurs', size='large', ha='right', weight='bold', color=text_colour)
         case _:
-            ax[1].text(0.75, -1.25, a_team, size='large', ha='right', weight='bold', color=text_colour)
-    ax[1].text(0.75, -1, a_score, size='medium', ha='right', weight='bold', color=text_colour)
-    ax[1].text(0.75, -0.75, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal', color=text_colour)
+            ax[2].text(1.45, 0.2, a_team, size='large', ha='right', weight='bold', color=text_colour)
+    ax[2].text(1.45, 0.1, a_score, size='x-large', ha='right', weight='bold', color=text_colour)
+    ax[2].text(1.45, 0, f'({round(a_xG,2)})', size='medium', ha='right', weight='normal', color=text_colour)
 
     # Add Team Crests to Header
-    print(f'{h_team}: {h_width_to_height}')
-    if h_width_to_height >= 1:
-        ax_h_crest = plt.axes([0.1,0.9,0.1,0.1])
-    else:
-        offset = (1-h_width_to_height)/20
-        ax_h_crest = plt.axes([0.1+offset,0.9,0.1-offset,0.1])
+    # print(f'{h_team}: {h_width_to_height}')
+    # if h_width_to_height >= 1:
+    #     ax_h_crest = plt.axes([0.1,0.9,0.1,0.1])
+    # else:
+    #     offset = (1-h_width_to_height)/20
+    #     ax_h_crest = plt.axes([0.1+offset,0.9,0.1-offset,0.1])
+    ax_h_crest = fig.add_subplot(gs[1:3,0:2])
     ax_h_crest.imshow(h_crest)
     ax_h_crest.set_zorder(5)
     ax_h_crest.axis('off')
-    ax_a_crest = plt.axes([0.8,0.9,0.1,0.1])
+    # ax_a_crest = plt.axes([0.8,0.9,0.1,0.1])
+    ax_a_crest = fig.add_subplot(gs[1:3,-2:])
     ax_a_crest.imshow(a_crest)
     ax_a_crest.set_zorder(5)
     ax_a_crest.axis('off')
 
-    fig.savefig(f'./output/static/{matches[matches['match_id']==m]['match_code'].item()}.png', bbox_inches='tight')
+    fig.subplots_adjust(left=0.075,right=0.925,bottom=0.075,top=1.05)
+    fig.savefig(f'./output/static/{matches[matches['match_id']==m]['match_code'].item()}.png')#, bbox_inches='tight')
     plt.close(fig)
     print(f'{matches[matches['match_id']==m]['match_code'].item()} graph saved')
