@@ -258,6 +258,7 @@ def get_league_shot_data(league:list[str], season:list[str]=None, period_start:s
                             elapsed = time.monotonic()
                             print(f'{len(h_shots) + len(a_shots)} shots returned. {round(elapsed - clock_start,2)} seconds elapsed, of which {time_asleep} spent asleep.')
                         elif datetime(match_year, match_month, match_day) > datetime(end_year, end_month, end_day):
+                            # Since match data appears chronologically in the outputted Understat data, all matches after the period_end can be disregarded
                             print(f'Breaking loop. No further matches before {period_end}. Shot data for {loop_counter} matches returned.')
                             break
         
