@@ -23,3 +23,4 @@ TEAM_COLOURS = {
 BG_COLOUR = 'seashell'
 TEXT_COLOUR = 'black'
 PITCH_COLOUR = 'forestgreen'
+PAINT_COLOUR = 'white'

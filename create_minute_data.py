@@ -19,16 +19,18 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
         `a_xG`, `a_0`, `a_1`, `a_2`, `a_3`, `a_4, and `a_event_log` representing the same data for the away team.
     :rtype output: list[pd.DataFrame]
     '''
-    if matches == None:
+    if matches is None:
         try:
             matches = pd.read_csv('./data/matches.csv')
         except:
             raise FileNotFoundError('No matches dataframe provided and no matches.csv file found in ./data/ folder.')
-    if shots_all == None:
+    if shots_all is None:
         try:
             shots_all = pd.read_csv('./data/raw_shots.csv')
         except:
             raise FileNotFoundError('No shots_all dataframe provided and no raw_shots.csv file found in ./data/ folder.')
+
+    output = []
 
     for id in matches['match_id']:
         data = {
@@ -61,8 +63,6 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
         shots_game = shots_all[shots_all['match_id']==id]
         h_shots = []
         a_shots = []
-
-        output = []
 
         for m in range(matches[matches['match_id']==id]['max_min'].item() + 1):
             # Get previous minute / initial values
@@ -291,7 +291,7 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
         df.to_csv(f'./data/{code}.csv', index=False)
         output.append(df)
 
-    return df
+    return output
 
 if __name__=='__main__':
     create_minute_data()
