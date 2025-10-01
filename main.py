@@ -188,8 +188,8 @@ def main(marker_size:int=300, **kwargs) -> None:
         ax[0].spines['right'].set(zorder=4)
         ax[1].set_xlim(0,1)
         ax[1].set_xticks([0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1], labels=range(0,105,10), color=TEXT_COLOUR)
-        ax[1].spines['right'].set_visible(False)
-        ax[1].spines['left'].set(zorder=4)
+        ax[1].spines['right'].set_color('0.85')
+        ax[1].spines['right'].set(zorder=1)
         ax[1].yaxis.set_label_position('right')
         ax[1].yaxis.set_ticks_position('right')
 
@@ -220,7 +220,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         ax[2].axhline(y=0.85,xmin=0.3,xmax=0.7,color=TEXT_COLOUR,zorder=2)
         ax[2].plot([0.67,0.7],[0.9,0.85],color=TEXT_COLOUR,zorder=2)
         ax[2].plot([0.67,0.7],[0.8,0.85],color=TEXT_COLOUR,zorder=2)
-        ax[2].text(0.5,0.925,f'{h_team} attacking',ha='center',size='medium',color=TEXT_COLOUR,zorder=2)
+        
 
         # Create legend
         labels = ['Exactly','At Least']
@@ -243,6 +243,7 @@ def main(marker_size:int=300, **kwargs) -> None:
                 a_team_label = 'Spurs'
             case _:
                 a_team_label = a_team
+        ax[2].text(0.5,0.925,f'{h_team_label} attacking',ha='center',size='medium',color=TEXT_COLOUR,zorder=2)
         ax[2].text(-0.45,0.2,h_team_label,size='large',ha='left',weight='bold',color=TEXT_COLOUR)
         h_score_label = ax[2].text(-0.45,0.1,h_score,size='x-large',ha='left',weight='bold',color=TEXT_COLOUR)
         h_xG_label = ax[2].text(-0.45,0,f'({round(h_xG,2)})',size='large',ha='left',weight='normal',color=TEXT_COLOUR)
