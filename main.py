@@ -114,7 +114,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         h_s_scat = ax[2].scatter(
             x=h_shots[(h_shots['minute'] <= 0) & (h_shots['result'] != 'Goal') & (h_shots['result']!='OwnGoal')]['x'],
             y=h_shots[(h_shots['minute'] <= 0) & (h_shots['result'] != 'Goal') & (h_shots['result']!='OwnGoal')]['y'],
-            s=[marker_size*n**2 for n in h_shots[(h_shots['minute']<=0) & (h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['xG']],
+            s=[marker_size*n for n in h_shots[(h_shots['minute']<=0) & (h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['xG']],
             color=h_colour[0],
             alpha=0.6,
             zorder=2
@@ -122,7 +122,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         h_og_scat = ax[2].scatter(
             x=h_shots[(h_shots['minute']<=0) & (h_shots['result']=='OwnGoal')]['x'],
             y=h_shots[(h_shots['minute']<=0) & (h_shots['result']=='OwnGoal')]['y'],
-            s=[marker_size*n**2 for n in h_shots[(h_shots['minute']<=0) & (h_shots['result']=='OwnGoal')]['xG']],
+            s=[marker_size*0.5 for n in h_shots[(h_shots['minute']<=0) & (h_shots['result']=='OwnGoal')]['xG']],
             color=h_colour[1],
             marker='*',
             edgecolors=h_colour[0],
@@ -132,7 +132,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         h_g_scat = ax[2].scatter(
             x=h_shots[(h_shots['minute']<=0) & (h_shots['result']=='Goal')]['x'],
             y=h_shots[(h_shots['minute']<=0) & (h_shots['result']=='Goal')]['y'],
-            s=[marker_size*n**2 for n in h_shots[(h_shots['minute']<=0) & (h_shots['result']=='Goal')]['xG']],
+            s=[marker_size*n for n in h_shots[(h_shots['minute']<=0) & (h_shots['result']=='Goal')]['xG']],
             color=h_colour[0],
             marker='*',
             edgecolors=h_colour[1],
@@ -142,7 +142,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         a_s_scat = ax[2].scatter(
             x=a_shots[(a_shots['minute'] <= 0) & (a_shots['result'] != 'Goal') & (a_shots['result']!='OwnGoal')]['x_adj'],
             y=a_shots[(a_shots['minute'] <= 0) & (a_shots['result'] != 'Goal') & (a_shots['result']!='OwnGoal')]['y_adj'],
-            s=[marker_size*n**2 for n in a_shots[(a_shots['minute']<=0) & (a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['xG']],
+            s=[marker_size*n for n in a_shots[(a_shots['minute']<=0) & (a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['xG']],
             color=a_colour[0],
             alpha=0.6,
             zorder=2
@@ -150,7 +150,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         a_og_scat = ax[2].scatter(
             x=a_shots[(a_shots['minute']<=0) & (a_shots['result']=='OwnGoal')]['x_adj'],
             y=a_shots[(a_shots['minute']<=0) & (a_shots['result']=='OwnGoal')]['y_adj'],
-            s=[marker_size*n**2 for n in a_shots[(a_shots['minute']<=0) & (a_shots['result']=='OwnGoal')]['xG']],
+            s=[marker_size*0.5 for n in a_shots[(a_shots['minute']<=0) & (a_shots['result']=='OwnGoal')]['xG']],
             color=a_colour[1],
             marker='*',
             edgecolors=a_colour[0],
@@ -160,7 +160,7 @@ def main(marker_size:int=300, **kwargs) -> None:
         a_g_scat = ax[2].scatter(
             x=a_shots[(a_shots['minute']<=0) & (a_shots['result']=='Goal')]['x_adj'],
             y=a_shots[(a_shots['minute']<=0) & (a_shots['result']=='Goal')]['y_adj'],
-            s=[marker_size*n**2 for n in a_shots[(a_shots['minute']<=0) & (a_shots['result']=='Goal')]['xG']],
+            s=[marker_size*n for n in a_shots[(a_shots['minute']<=0) & (a_shots['result']=='Goal')]['xG']],
             color=a_colour[0],
             marker='*',
             edgecolors=a_colour[1],
@@ -313,66 +313,76 @@ def main(marker_size:int=300, **kwargs) -> None:
                 a_ol_bar.patches[r].set_width(a_at_least[r])
             
             # Update scatter plots
-            if h_shots[h_shots['minute']<=frame_minute].shape[0] > n_h_shots[-1]:
-                h_s_scat = ax[2].scatter(
-                    x=h_shots[(h_shots['minute'] == frame_minute) & (h_shots['result'] != 'Goal') & (h_shots['result']!='OwnGoal')]['x'],
-                    y=h_shots[(h_shots['minute'] == frame_minute) & (h_shots['result'] != 'Goal') & (h_shots['result']!='OwnGoal')]['y'],
-                    s=[marker_size*n**2 for n in h_shots[(h_shots['minute']==frame_minute) & (h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['xG']],
-                    color=h_colour[0],
-                    alpha=0.6,
-                    zorder=3
-                )
-                h_og_scat = ax[2].scatter(
-                    x=h_shots[(h_shots['minute']==frame_minute) & (h_shots['result']=='OwnGoal')]['x'],
-                    y=h_shots[(h_shots['minute']==frame_minute) & (h_shots['result']=='OwnGoal')]['y'],
-                    s=[marker_size*n**2 for n in h_shots[(h_shots['minute']==frame_minute) & (h_shots['result']=='OwnGoal')]['xG']],
-                    color=h_colour[1],
-                    marker='*',
-                    edgecolors=h_colour[0],
-                    alpha=0.8,
-                    zorder=3
-                )
-                h_g_scat = ax[2].scatter(
-                    x=h_shots[(h_shots['minute']==frame_minute) & (h_shots['result']=='Goal')]['x'],
-                    y=h_shots[(h_shots['minute']==frame_minute) & (h_shots['result']=='Goal')]['y'],
-                    s=[marker_size*n**2 for n in h_shots[(h_shots['minute']==frame_minute) & (h_shots['result']=='Goal')]['xG']],
-                    color=h_colour[0],
-                    marker='*',
-                    edgecolors=h_colour[1],
-                    alpha=0.8,
-                    zorder=3
-                )
-                n_h_shots.append(h_shots[h_shots['minute']<=frame_minute].shape[0])
-            if a_shots[a_shots['minute']<=frame_minute].shape[0] > n_a_shots[-1]:
-                a_s_scat = ax[2].scatter(
-                    x=a_shots[(a_shots['minute'] == frame_minute) & (a_shots['result'] != 'Goal') & (a_shots['result']!='OwnGoal')]['x_adj'],
-                    y=a_shots[(a_shots['minute'] == frame_minute) & (a_shots['result'] != 'Goal') & (a_shots['result']!='OwnGoal')]['y_adj'],
-                    s=[marker_size*n**2 for n in a_shots[(a_shots['minute']==frame_minute) & (a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['xG']],
-                    color=a_colour[0],
-                    alpha=0.6,
-                    zorder=3
-                )
-                a_og_scat = ax[2].scatter(
-                    x=a_shots[(a_shots['minute']==frame_minute) & (a_shots['result']=='OwnGoal')]['x_adj'],
-                    y=a_shots[(a_shots['minute']==frame_minute) & (a_shots['result']=='OwnGoal')]['y_adj'],
-                    s=[marker_size*n**2 for n in a_shots[(a_shots['minute']==frame_minute) & (a_shots['result']=='OwnGoal')]['xG']],
-                    color=a_colour[1],
-                    marker='*',
-                    edgecolors=a_colour[0],
-                    alpha=0.8,
-                    zorder=3
-                )
-                a_g_scat = ax[2].scatter(
-                    x=a_shots[(a_shots['minute']==frame_minute) & (a_shots['result']=='Goal')]['x_adj'],
-                    y=a_shots[(a_shots['minute']==frame_minute) & (a_shots['result']=='Goal')]['y_adj'],
-                    s=[marker_size*n**2 for n in a_shots[(a_shots['minute']==frame_minute) & (a_shots['result']=='Goal')]['xG']],
-                    color=a_colour[0],
-                    marker='*',
-                    edgecolors=a_colour[1],
-                    alpha=0.8,
-                    zorder=3
-                )
-                n_a_shots.append(a_shots[a_shots['minute']<=frame_minute].shape[0])
+            if minute_data['h_type'][f] is not None:
+                match minute_data['h_type'][f]:
+                    case 'Goal':
+                        h_g_scat = ax[2].scatter(
+                            x=minute_data['h_shot_x'][f],
+                            y=minute_data['h_shot_y'][f],
+                            s=marker_size*minute_data['h_shot_xG'][f],
+                            color=h_colour[0],
+                            marker='*',
+                            edgecolors=h_colour[1],
+                            alpha=0.8,
+                            zorder=3
+                        )
+                    case 'OwnGoal':
+                        h_og_scat = ax[2].scatter(
+                            x=minute_data['h_shot_x'][f],
+                            y=minute_data['h_shot_y'][f],
+                            s=marker_size*0.5,
+                            color=h_colour[1],
+                            marker='*',
+                            edgecolors=h_colour[0],
+                            alpha=0.8,
+                            zorder=3
+                        )
+                    case _:
+                        h_s_scat = ax[2].scatter(
+                            x=minute_data['h_shot_x'][f],
+                            y=minute_data['h_shot_y'][f],
+                            s=marker_size*minute_data['h_shot_xG'][f],
+                            color=h_colour[0],
+                            alpha=0.6,
+                            zorder=3
+                        )
+                
+                        
+                # n_h_shots.append(h_shots[h_shots['minute']<=frame_minute].shape[0])
+            if minute_data['a_type'][f] is not None:
+                match minute_data['a_type'][f]:
+                    case 'Goal':
+                        a_g_scat = ax[2].scatter(
+                            x=minute_data['a_shot_x'][f],
+                            y=minute_data['a_shot_y'][f],
+                            s=marker_size*minute_data['a_shot_xG'][f],
+                            color=a_colour[0],
+                            marker='*',
+                            edgecolors=a_colour[1],
+                            alpha=0.8,
+                            zorder=3
+                        )
+                    case 'OwnGoal':
+                        a_og_scat = ax[2].scatter(
+                            x=minute_data['a_shot_x'][f],
+                            y=minute_data['a_shot_y'][f],
+                            s=marker_size*0.5,
+                            color=a_colour[1],
+                            marker='*',
+                            edgecolors=a_colour[0],
+                            alpha=0.8,
+                            zorder=3
+                        )
+                    case _:
+                        a_s_scat = ax[2].scatter(
+                            x=minute_data['a_shot_x'][f],
+                            y=minute_data['a_shot_y'][f],
+                            s=marker_size*minute_data['a_shot_xG'][f],
+                            color=a_colour[0],
+                            alpha=0.6,
+                            zorder=3
+                        )
+                # n_a_shots.append(a_shots[a_shots['minute']<=frame_minute].shape[0])
             return artists
         
         def progress(i, n):
@@ -393,6 +403,10 @@ def main(marker_size:int=300, **kwargs) -> None:
         print(f'Visuals created for {code}. Total time elapsed: {int(((elapsed - start)/60) - (((elapsed - start)%60)/60))} minutes and {round((elapsed - start)%60,2)} seconds.')
 
 if __name__ == '__main__':
+    league = None
+    season = None
+    period_start = None
+    period_end = None
     if len(argv) > 1:
         cl_args = argv[1:]
         if cl_args[0][0] != '-':
@@ -406,6 +420,28 @@ if __name__ == '__main__':
     -ps\t\tStart Date for filtering visualised matches in "YYYY-MM-DD" format
     -pe\t\tEnd Date for filtering visualised matches in "YYYY-MM-DD" format'''
             )
+        else:
+            key = None
+            for i in range(len(cl_args)):
+                if cl_args[i][0] == "-":
+                    if key is None:
+                        key = cl_args[i]
+                    else:
+                        raise ValueError(f'No value provided for command line option {key}.')
+                else:
+                    match key:
+                        case "-l":
+                            league = cl_args[i]
+                        case "-s":
+                            season = cl_args[i]
+                        case "-ps":
+                            period_start = cl_args[i]
+                        case "-pe":
+                            period_end = cl_args[i]
+                        case _:
+                            raise ValueError(f'Unknown command line argument {key} with value {cl_args[i]}')
+                    key = None
+        main(l=league, s=season, start=period_start, end=period_end)
     else:
         league = 'EPL'
         period_start = (datetime.datetime.today() - datetime.timedelta(days=6)).strftime('%Y-%m-%d')

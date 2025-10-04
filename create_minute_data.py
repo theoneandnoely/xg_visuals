@@ -43,6 +43,10 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
             'h_2':[],
             'h_3':[],
             'h_4':[],
+            'h_shot_x':[],
+            'h_shot_y':[],
+            'h_type':[],
+            'h_shot_xG':[],
             'h_event_log':[],
             'a_name':[],
             'a_score':[],
@@ -52,6 +56,10 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
             'a_2':[],
             'a_3':[],
             'a_4':[],
+            'a_shot_x':[],
+            'a_shot_y':[],
+            'a_type':[],
+            'a_shot_xG':[],
             'a_event_log':[],
             'code':[]
         }
@@ -93,8 +101,38 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
                 attack_result = [shots_min['result'][0]]
                 attack_h_a = [shots_min['h_a'][0]]
                 attack_players = [shots_min['player'][0]]
+                h_shot_x = []
+                h_shot_y = []
+                h_type = []
+                h_shot_xG = []
+                a_shot_x = []
+                a_shot_y = []
+                a_type = []
+                a_shot_xG = []
+
+                if attack_h_a[0] == 'h':
+                    h_shot_x = [shots_min['x'][0]]
+                    h_shot_y = [shots_min['y'][0]]
+                    h_type = [shots_min['result'][0]]
+                    h_shot_xG = [shots_min['xG'][0]]
+                else:
+                    a_shot_x = [1 - shots_min['x'][0]]
+                    a_shot_y = [1 - shots_min['y'][0]]
+                    a_type = [shots_min['result'][0]]
+                    a_shot_xG = [shots_min['xG'][0]]
 
                 for i in range(1,shots_min.shape[0]):
+                    if shots_min['h_a'][i] == 'h':
+                        h_shot_x.append(shots_min['x'][i])
+                        h_shot_y.append(shots_min['y'][i])
+                        h_type.append(shots_min['result'][i])
+                        h_shot_xG.append(shots_min['xG'][i])
+                    else:
+                        a_shot_x.append(1 - shots_min['x'][i])
+                        a_shot_y.append(1 - shots_min['y'][i])
+                        a_type.append(shots_min['result'][i])
+                        a_shot_xG.append(shots_min['xG'][i])
+
                     if shots_min['last_action'][i] == 'Rebound':
                         # Append any rebounded shots to the current attack
                         attack.append(shots_min['xG'][i])
@@ -153,34 +191,34 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
                     if attack_result[-1] == 'Goal':
                         h_score += 1
                         if len(attack) > 1:
-                            h_events = f'{m}\': Goal scored by {attack_players[-1]} from an attack with {len(attack)} shots worth {round(attack_xG,2)} xG'
+                            h_events = f'{m}\': Goal scored by {attack_players[-1]} ({len(attack)} shots) - {round(attack_xG,2)} xG'
                         else:
-                            h_events = f'{m}\': Goal scored by {attack_players[-1]} from a shot worth {round(attack_xG,2)} xG'
+                            h_events = f'{m}\': Goal scored by {attack_players[-1]} - {round(attack_xG,2)} xG'
                     elif attack_result[-1] == 'OwnGoal':
                         a_score += 1
                         h_events = f'{m}\': Own goal scored by {attack_players[-1]}'
                     else:
                         if len(attack) > 1:
-                            h_events = f'{m}\': Attack with {len(attack)} shots worth {round(attack_xG,2)} xG'
+                            h_events = f'{m}\': Attack with {len(attack)} shots - {round(attack_xG,2)} xG'
                         else:
-                            h_events = f'{m}\': Shot by {attack_players[-1]} worth {round(attack_xG,2)} xG'
+                            h_events = f'{m}\': Shot by {attack_players[-1]} - {round(attack_xG,2)} xG'
                 else:
                     a_shots.append(attack_xG)
                     a_xG += attack_xG
                     if attack_result[-1] == 'Goal':
                         a_score += 1
                         if len(attack) > 1:
-                            a_events = f'{m}\': Goal scored by {attack_players[-1]} from an attack with {len(attack)} shots worth {round(attack_xG,2)} xG'
+                            a_events = f'{m}\': Goal scored by {attack_players[-1]} ({len(attack)} shots) - {round(attack_xG,2)} xG'
                         else:
-                            a_events = f'{m}\': Goal scored by {attack_players[-1]} from a shot worth {round(attack_xG,2)} xG'
+                            a_events = f'{m}\': Goal scored by {attack_players[-1]} - {round(attack_xG,2)} xG'
                     elif attack_result[-1] == 'OwnGoal':
                         h_score += 1
                         a_events = f'{m}\': Own goal scored by {attack_players[-1]}'
                     else:
                         if len(attack) > 1:
-                            a_events = f'{m}\': Attack with {len(attack)} shots worth {round(attack_xG,2)} xG'
+                            a_events = f'{m}\': Attack with {len(attack)} shots - {round(attack_xG,2)} xG'
                         else:
-                            a_events = f'{m}\': Shot by {attack_players[-1]} worth {round(attack_xG,2)} xG'
+                            a_events = f'{m}\': Shot by {attack_players[-1]} - {round(attack_xG,2)} xG'
                 
                 new_h_prob = [prob(h_shots,0), prob(h_shots,1), prob(h_shots,2), prob(h_shots,3)]
                 new_h_prob.append(1 - (new_h_prob[0] + new_h_prob[1] + new_h_prob[2] + new_h_prob[3]))
@@ -192,6 +230,8 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
                     diff_h_prob.append((new_h_prob[j] - h_prob[j])/5)
                     diff_a_prob.append((new_a_prob[j] - a_prob[j])/5)
                 
+                if len(h_shot_x) > 5 or len(a_shot_x) > 5:
+                    raise ValueError(f'More shots than frames. {len(h_shot_x)} h shots, {len(a_shot_x)} a shots for {m}\' minute.')
                 # lerping probability values for smoother transition in animation
                 for f in range(4):
                     data['minute'].append(m)
@@ -214,6 +254,26 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
                     data['a_4'].append(a_prob[4] + (diff_a_prob[4] * (f+1)))
                     data['a_event_log'].append(a_events)
                     data['code'].append(code)
+                    if f < len(h_shot_x):
+                        data['h_shot_x'].append(h_shot_x[f])
+                        data['h_shot_y'].append(h_shot_y[f])
+                        data['h_type'].append(h_type[f])
+                        data['h_shot_xG'].append(h_shot_xG[f])
+                    else:
+                        data['h_shot_x'].append(None)
+                        data['h_shot_y'].append(None)
+                        data['h_type'].append(None)
+                        data['h_shot_xG'].append(None)
+                    if f < len(a_shot_x):
+                        data['a_shot_x'].append(a_shot_x[f])
+                        data['a_shot_y'].append(a_shot_y[f])
+                        data['a_type'].append(a_type[f])
+                        data['a_shot_xG'].append(a_shot_xG[f])
+                    else:
+                        data['a_shot_x'].append(None)
+                        data['a_shot_y'].append(None)
+                        data['a_type'].append(None)
+                        data['a_shot_xG'].append(None)
                 data['minute'].append(m)
                 data['h_name'].append(h_name)
                 data['h_score'].append(h_score)
@@ -234,6 +294,26 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
                 data['a_4'].append(new_a_prob[4])
                 data['a_event_log'].append(a_events)
                 data['code'].append(code)
+                if len(h_shot_x) == 5:
+                    data['h_shot_x'].append(h_shot_x[-1])
+                    data['h_shot_y'].append(h_shot_y[-1])
+                    data['h_type'].append(h_type[-1])
+                    data['h_shot_xG'].append(h_shot_xG[-1])
+                else:
+                    data['h_shot_x'].append(None)
+                    data['h_shot_y'].append(None)
+                    data['h_type'].append(None)
+                    data['h_shot_xG'].append(None)
+                if len(a_shot_x) == 5:
+                    data['a_shot_x'].append(a_shot_x[-1])
+                    data['a_shot_y'].append(a_shot_y[-1])
+                    data['a_type'].append(a_type[-1])
+                    data['a_shot_xG'].append(a_shot_xG[-1])
+                else:
+                    data['a_shot_x'].append(None)
+                    data['a_shot_y'].append(None)
+                    data['a_type'].append(None)
+                    data['a_shot_xG'].append(None)
             else:
                 for i in range(5):
                     data['minute'].append(m)
@@ -256,6 +336,14 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
                     data['a_4'].append(a_prob[4])
                     data['a_event_log'].append(a_events)
                     data['code'].append(code)
+                    data['h_shot_x'].append(None)
+                    data['h_shot_y'].append(None)
+                    data['h_type'].append(None)
+                    data['a_shot_x'].append(None)
+                    data['a_shot_y'].append(None)
+                    data['a_type'].append(None)
+                    data['h_shot_xG'].append(None)
+                    data['a_shot_xG'].append(None)
 
         # Add 20 frames holding on the final value
         h_score = data['h_score'][-1]
@@ -285,6 +373,14 @@ def create_minute_data(matches:pd.DataFrame = None, shots_all:pd.DataFrame = Non
             data['a_4'].append(a_prob[4])
             data['a_event_log'].append(a_events)
             data['code'].append(code)
+            data['h_shot_x'].append(None)
+            data['h_shot_y'].append(None)
+            data['h_type'].append(None)
+            data['h_shot_xG'].append(None)
+            data['a_shot_x'].append(None)
+            data['a_shot_y'].append(None)
+            data['a_type'].append(None)
+            data['a_shot_xG'].append(None)
         
         # Save data to csv
         df = pd.DataFrame(data)

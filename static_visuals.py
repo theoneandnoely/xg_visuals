@@ -58,7 +58,7 @@ clash = {
     'orange':{'orange'}
 }
 
-for m in matches['match_id'][50:51]:
+for m in matches['match_id'][:1]:
     # Get Team names from match record
     h_team = matches[matches['match_id']==m]['h_team'].item()
     a_team = matches[matches['match_id']==m]['a_team'].item()
@@ -126,13 +126,13 @@ for m in matches['match_id'][50:51]:
         ax[1].barh(range(5), a_at_least, fill=False, edgecolor=a_colour[1], zorder=3)
 
     # Add scatter plot for shot map
-    marker_size = 250
-    ax[2].scatter(h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['x'], h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['y'], s = [marker_size*n**2 for n in h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['xG']], color = h_colour[0], alpha=0.6, edgecolors=None, zorder=2)
-    ax[2].scatter(a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['x_adj'], a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['y_adj'], s = [marker_size*n**2 for n in a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['xG']], color = a_colour[0], alpha=0.6, edgecolors=None, zorder=2)
-    ax[2].scatter(h_shots[h_shots['result']=='Goal']['x'], h_shots[h_shots['result']=='Goal']['y'], s = [marker_size*n**2 for n in h_shots[h_shots['result']=='Goal']['xG']], color = h_colour[0], edgecolors=h_colour[1], marker='*', alpha=0.8, zorder=3)
-    ax[2].scatter(a_shots[a_shots['result']=='Goal']['x_adj'], a_shots[a_shots['result']=='Goal']['y_adj'], s = [marker_size*n**2 for n in a_shots[a_shots['result']=='Goal']['xG']], color = a_colour[0], edgecolors=a_colour[1], marker='*', alpha=0.8, zorder=3)
-    ax[2].scatter(h_shots[h_shots['result']=='OwnGoal']['x'], h_shots[h_shots['result']=='OwnGoal']['y'], s = [marker_size*0.5**2 for n in h_shots[h_shots['result']=='OwnGoal']['xG']], color = h_colour[1], edgecolors=h_colour[0], marker='*', alpha=0.8, zorder=3)
-    ax[2].scatter(a_shots[a_shots['result']=='OwnGoal']['x_adj'], a_shots[a_shots['result']=='OwnGoal']['y_adj'], s = [marker_size*0.5**2 for n in a_shots[a_shots['result']=='OwnGoal']['xG']], color = a_colour[1], edgecolors=a_colour[0], marker='*', alpha=0.8, zorder=3)
+    marker_size = 300
+    ax[2].scatter(h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['x'], h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['y'], s = [marker_size*n for n in h_shots[(h_shots['result'] != 'Goal') & (h_shots['result'] != 'OwnGoal')]['xG']], color = h_colour[0], alpha=0.6, edgecolors=None, zorder=2)
+    ax[2].scatter(a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['x_adj'], a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['y_adj'], s = [marker_size*n for n in a_shots[(a_shots['result'] != 'Goal') & (a_shots['result'] != 'OwnGoal')]['xG']], color = a_colour[0], alpha=0.6, edgecolors=None, zorder=2)
+    ax[2].scatter(h_shots[h_shots['result']=='Goal']['x'], h_shots[h_shots['result']=='Goal']['y'], s = [marker_size*n for n in h_shots[h_shots['result']=='Goal']['xG']], color = h_colour[0], edgecolors=h_colour[1], marker='*', alpha=0.8, zorder=3)
+    ax[2].scatter(a_shots[a_shots['result']=='Goal']['x_adj'], a_shots[a_shots['result']=='Goal']['y_adj'], s = [marker_size*n for n in a_shots[a_shots['result']=='Goal']['xG']], color = a_colour[0], edgecolors=a_colour[1], marker='*', alpha=0.8, zorder=3)
+    ax[2].scatter(h_shots[h_shots['result']=='OwnGoal']['x'], h_shots[h_shots['result']=='OwnGoal']['y'], s = [marker_size*0.5 for n in h_shots[h_shots['result']=='OwnGoal']['xG']], color = h_colour[1], edgecolors=h_colour[0], marker='*', alpha=0.8, zorder=3)
+    ax[2].scatter(a_shots[a_shots['result']=='OwnGoal']['x_adj'], a_shots[a_shots['result']=='OwnGoal']['y_adj'], s = [marker_size*0.5 for n in a_shots[a_shots['result']=='OwnGoal']['xG']], color = a_colour[1], edgecolors=a_colour[0], marker='*', alpha=0.8, zorder=3)
     ax[2].set_xlim(0,1)
     ax[2].set_ylim(0,1)
     ax[2].tick_params(axis='both',length=0)
@@ -225,6 +225,7 @@ for m in matches['match_id'][50:51]:
     ax_a_crest.axis('off')
 
     fig.subplots_adjust(left=0.075,right=0.925,bottom=0.075,top=1.05)
-    fig.savefig(f'./output/static/{matches[matches['match_id']==m]['match_code'].item()}.png')#, bbox_inches='tight')
-    plt.close(fig)
+    plt.show()
+    # fig.savefig(f'./output/static/{matches[matches['match_id']==m]['match_code'].item()}.png')#, bbox_inches='tight')
+    # plt.close(fig)
     print(f'{matches[matches['match_id']==m]['match_code'].item()} graph saved')
